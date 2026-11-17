@@ -102,3 +102,71 @@ export function withBoxFolded(model = openBox()) {
   });
   return model;
 }
+
+// Closed packaging box on the same planar net family as openBox: a base, four
+// walls and a lid hinged to the back wall. Seven packaging seams close the
+// free edges. `flip` records the endpoint pairing explicitly (a[0]↔b[1]) so
+// the solver never guesses seam orientation.
+export function closedBox() {
+  const model = openBox();
+  model.name = 'closed box (4x3x2, 7 seams)';
+  model.panels = [
+    ...model.panels.map((p) => ({ ...p, vertices: p.vertices.map((v) => [...v]) })),
+    { id: 'lid', vertices: [[0, 0], [4, 0], [4, 3], [0, 3]] },
+  ];
+  model.edges = [
+    ...model.edges.map((e) => ({ ...e })),
+    { id: 'lid-hinge', a: 'back', b: 'lid', aEdge: 2, bEdge: 0, angle: 0 },
+  ];
+  // Seam slots are free edges only: every wall's top edge and the lid.
+  model.seams = [
+    { id: 'front-lid', a: 'front', aEdge: 0, b: 'lid', bEdge: 2, flip: true },
+    { id: 'front-right', a: 'front', aEdge: 1, b: 'right', bEdge: 1, flip: true },
+    { id: 'front-left', a: 'front', aEdge: 3, b: 'left', bEdge: 3, flip: true },
+    { id: 'back-right', a: 'back', aEdge: 1, b: 'right', bEdge: 3, flip: true },
+    { id: 'back-left', a: 'back', aEdge: 3, b: 'left', bEdge: 1, flip: true },
+    { id: 'left-lid', a: 'left', aEdge: 2, b: 'lid', bEdge: 3, flip: true },
+    { id: 'right-lid', a: 'right', aEdge: 2, b: 'lid', bEdge: 1, flip: true },
+  ];
+  return model;
+}
+
+// The closed box with every hinge already at 90 except the lid also at 90;
+// nothing is left to solve. The interface uses this as the folded target.
+export function closedBoxFolded() {
+  const model = closedBox();
+  for (const edge of model.edges) edge.angle = 90;
+  return model;
+}
+
+// All hinges at 90° except the lid, which is driven to 150°: the lid sweeps
+// through the base. A deliberate interference sample; collision detection must
+// report it and the interface must not hide it behind a "closed" seam result.
+export function closedBoxColliding() {
+  const model = closedBox();
+  for (const edge of model.edges) edge.angle = 90;
+  model.edges.find((e) => e.id === 'lid-hinge').angle = 150;
+  return model;
+}
+
+// Box with an internal flap hinged to the lid's free edge at +90°. Seams
+// still close (the flap is not a seam edge), yet the flap lies exactly on the
+// front wall: closure succeeds and interference remains. This is the sample
+// that proves a closed solve cannot mask a collision.
+export function closedBoxInternalCollision() {
+  const model = closedBox();
+  model.name = 'closed box + internal flap (closes, collides)';
+  model.seams = model.seams.filter((s) => s.id !== 'front-lid');
+  model.panels.push({ id: 'insert', vertices: [[0, 0], [4, 0], [4, 2.5], [0, 2.5]] });
+  model.edges.push({ id: 'insert-hinge', a: 'lid', b: 'insert', aEdge: 2, bEdge: 0, angle: 90 });
+  for (const edge of model.edges) if (edge.id !== 'insert-hinge') edge.angle = 90;
+  return model;
+}
+
+// Names of the old flat/tree examples that must keep running unchanged.
+export const LEGACY_EXAMPLE_NAMES = [
+  'open box 4x3x2',
+  'two-panel diagonal hinge',
+  'mixed-size strip',
+];
+

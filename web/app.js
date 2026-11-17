@@ -3,6 +3,7 @@ import { FoldView3D } from './view3d.js';
 import {
   addEdge,
   addPanel,
+  addSeam,
   clearLocal,
   deepClone,
   emptyModel,
@@ -11,11 +12,16 @@ import {
   parseJSONFile,
   removeEdge,
   removePanel,
+  removeSeam,
   saveLocal,
   setAngle,
   toJSONFile,
 } from './state.js';
 import {
+  closedBox,
+  closedBoxColliding,
+  closedBoxFolded,
+  closedBoxInternalCollision,
   cyclicModel,
   mismatchedHinge,
   mixedSizeStrip,
@@ -23,38 +29,54 @@ import {
   twoPanelDiagonal,
   withBoxFolded,
 } from '../src/examples.js';
+import { applyUnfold } from './unfold.js';
 
 const $ = (sel) => document.querySelector(sel);
 
 const app = {
   model: emptyModel(),
+  mode: 'tree',
+  evaluation: null,
   result: null,
   diagnostics: [],
   selectedPanel: null,
   selectedEdge: null,
   flat: null,
   view3d: null,
+  // Angles that the unfold slider returns to when you refold; captured when
+  // the user loads an example or releases an angle edit.
+  targetAngles: [],
 };
 
 function refresh() {
-  const { ok, diagnostics, result } = evaluate(app.model);
-  app.result = ok ? result : null;
-  app.diagnostics = diagnostics;
+  const evaluation = evaluate(app.model, { mode: app.mode });
+  app.evaluation = evaluation;
+  app.result = evaluation.result;
+  app.diagnostics = evaluation.diagnostics;
   if (app.selectedPanel && !app.model.panels.some((p) => p.id === app.selectedPanel)) {
     app.selectedPanel = null;
   }
+  if (typeof document === 'undefined') return;
   renderDiagnostics();
+  renderPackaging();
   renderPanels();
   renderEdges();
+  renderSeams();
   app.flat.update(app.model, app.result, app.selectedPanel);
-  app.view3d.update(app.model, app.result, app.selectedPanel);
+  app.view3d.update(app.model, app.result, app.selectedPanel, evaluation);
   renderVertexInspector();
+}
+
+function captureTargetAngles() {
+  app.targetAngles = app.model.edges.map((e) => e.angle);
 }
 
 function renderDiagnostics() {
   const el = $('#diagnostics');
   if (!app.diagnostics.length) {
-    el.innerHTML = '<div class="ok">Model valid: tree topology, all hinge lengths consistent.</div>';
+    el.innerHTML = `<div class="ok">${app.mode === 'closed'
+      ? 'Closed-loop packaging: every seam is within tolerance and no panel interference was found.'
+      : 'Tree model valid: all hinge lengths consistent.'}</div>`;
     return;
   }
   el.innerHTML = app.diagnostics.map((d) => {
@@ -63,9 +85,54 @@ function renderDiagnostics() {
   }).join('');
 }
 
+function fmtGap(v) {
+  if (v === null || v === undefined) return '—';
+  if (Math.abs(v) < 1e-12) return '0';
+  if (Math.abs(v) < 1e-4) return v.toExponential(2);
+  return v.toFixed(4);
+}
+
+function renderPackaging() {
+  const el = $('#packaging');
+  const ev = app.evaluation;
+  if (!el) return;
+  if (!ev) { el.innerHTML = ''; return; }
+  const treeSeam = ev.tree?.seamReport;
+  const closedSeam = ev.closed?.seamReport;
+  const work = ev.closed?.work ?? ev.tree?.work;
+  const rows = [];
+  rows.push(`<div class="pack-row"><span>mode</span><strong>${ev.mode}</strong></div>`);
+  if (treeSeam?.seamCount) {
+    rows.push(`<div class="pack-row"><span>tree seam max gap</span><strong>${fmtGap(treeSeam.maxGap)}</strong></div>`);
+  }
+  if (closedSeam?.seamCount) {
+    rows.push(`<div class="pack-row"><span>solved seam max gap</span><strong>${fmtGap(closedSeam.maxGap)}</strong></div>`);
+    rows.push(`<div class="pack-row"><span>closed</span><strong>${closedSeam.closed ? 'yes' : 'NO'}</strong></div>`);
+  }
+  if (ev.comparison) {
+    rows.push(`<div class="pack-row"><span>largest angle change</span><strong>${ev.comparison.maxAngleChange.toFixed(2)}°</strong></div>`);
+  }
+  if (work) {
+    rows.push(`<div class="pack-row"><span>solve cost</span><strong>${work.foldBuilds} folds · ${work.iterations} iters · ${work.seedsTried ?? 0} seeds</strong></div>`);
+  }
+  if (ev.closed?.solvedFrom) {
+    rows.push(`<div class="pack-row"><span>converged from</span><strong>${ev.closed.solvedFrom}</strong></div>`);
+  }
+  const collisions = ev.collisions ?? [];
+  rows.push(`<div class="pack-row"><span>interference</span><strong class="${collisions.length ? 'bad' : ''}">${
+    collisions.length ? `${collisions.length} pair(s)` : 'none'}</strong></div>`);
+  if (collisions.length) {
+    rows.push(`<ul class="collision-list">${collisions.map((c) =>
+      `<li>${c.a} × ${c.b} — ${c.type} at (${c.point.map((n) => n.toFixed(2)).join(', ')})</li>`).join('')}</ul>`);
+  }
+  if (app.mode === 'closed' && !ev.result) {
+    rows.push('<div class="muted">No pose was produced; the diagnostics above explain why.</div>');
+  }
+  el.innerHTML = rows.join('');
+}
+
 function renderPanels() {
-  const el = '#panel-list';
-  $(el).innerHTML = app.model.panels.map((p) => {
+  $('#panel-list').innerHTML = app.model.panels.map((p) => {
     const sel = p.id === app.selectedPanel ? 'selected' : '';
     const dims = p.vertices.map((v) => `(${v[0]},${v[1]})`).join(' ');
     return `<div class="row ${sel}" data-panel="${p.id}">
@@ -96,8 +163,28 @@ function renderEdges() {
   }).join('') || '<div class="muted">No connections yet.</div>';
 }
 
+function renderSeams() {
+  const seams = app.model.seams ?? [];
+  const gaps = new Map();
+  for (const report of app.evaluation?.closed?.seamReport?.seams
+    ?? app.evaluation?.tree?.seamReport?.seams ?? []) {
+    gaps.set(report.id, report.gap);
+  }
+  $('#seam-list').innerHTML = seams.map((s) => {
+    const gap = gaps.get(s.id);
+    const cls = gap === undefined ? '' : gap <= 1e-6 ? 'seam-closed' : 'seam-open';
+    return `<div class="row ${cls}" data-seam="${s.id}">
+      <span class="pid">${s.id}</span>
+      <span class="verts">${s.a}·e${s.aEdge} ↔ ${s.b}·e${s.bEdge}</span>
+      <span class="gap">${gap === undefined ? '—' : fmtGap(gap)}</span>
+      <button data-action="delete-seam" data-id="${s.id}">delete</button>
+    </div>`;
+  }).join('') || '<div class="muted">No seams declared.</div>';
+}
+
 function renderVertexInspector() {
-  const el = '#vertex-inspector';
+  const el = $('#vertex-inspector');
+  if (!el) return;
   if (!app.selectedPanel || !app.result) {
     el.innerHTML = '<div class="muted">Select a panel in either view to inspect evaluated vertices.</div>';
     return;
@@ -130,12 +217,44 @@ function loadExample(builder, preFold = false) {
   app.model = preFold ? withBoxFolded(openBox()) : deepClone(builder());
   app.selectedPanel = null;
   app.selectedEdge = null;
+  captureTargetAngles();
   refresh();
+}
+
+// Re-applies the unfold fraction to the captured folded target. Used by the
+// unfold slider and the "unfold flat / refold" buttons; the kernel re-evaluates
+// every step, so seam gaps and collisions at that fraction are real.
+function setUnfold(t) {
+  const angles = computeUnfold(t);
+  if (typeof document === 'undefined') return angles;
+  const label = $('#unfold-value');
+  if (label) label.textContent = `${Math.round(t * 100)}%`;
+  const slider = $('#unfold-slider');
+  if (slider && Math.abs(Number(slider.value) - t) > 1e-9) {
+    slider.value = String(t);
+  }
+  refresh();
+  return angles;
+}
+
+// Pure state transition behind the unfold control: no DOM access, so the exact
+// path the UI takes is covered by headless tests.
+function computeUnfold(t) {
+  if (!app.targetAngles.length || app.targetAngles.length !== app.model.edges.length) {
+    captureTargetAngles();
+  }
+  return applyUnfold(app.model, app.targetAngles, t);
 }
 
 async function bindUI() {
   app.flat = new FlatView($('#flat-canvas'), { onSelect: selectPanel });
-  app.view3d = await FoldView3D.create($('#view3d'), { onSelect: selectPanel });
+  app.view3d = await FoldView3D.create($('#view3d'), {
+    onSelect: selectPanel,
+    onAngleChange: (edgeIndex, degrees) => {
+      setAngle(app.model, edgeIndex, degrees);
+      refresh();
+    },
+  });
 
   document.addEventListener('input', (e) => {
     const action = e.target.dataset.action;
@@ -148,8 +267,24 @@ async function bindUI() {
         const pair = document.querySelector(
           `[data-action="${action === 'angle' ? 'angle-num' : 'angle'}"][data-index="${idx}"]`);
         if (pair) pair.value = value;
+        // A manual angle edit becomes the new folded target and pins the
+        // unfold fraction at 100%.
+        captureTargetAngles();
+        const slider = $('#unfold-slider');
+        if (slider) slider.value = '1';
+        const label = $('#unfold-value');
+        if (label) label.textContent = '100%';
         refresh();
       }
+    } else if (action === 'unfold') {
+      setUnfold(Number(e.target.value));
+    }
+  });
+
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'mode-select') {
+      app.mode = e.target.value === 'closed' ? 'closed' : 'tree';
+      refresh();
     }
   });
 
@@ -167,6 +302,9 @@ async function bindUI() {
       refresh();
     } else if (action === 'delete-edge') {
       removeEdge(app.model, Number(e.target.dataset.index));
+      refresh();
+    } else if (action === 'delete-seam') {
+      removeSeam(app.model, e.target.dataset.id);
       refresh();
     } else if (action === 'add-panel') {
       try {
@@ -195,6 +333,24 @@ async function bindUI() {
       } catch (err) {
         alert(err.message);
       }
+    } else if (action === 'add-seam') {
+      try {
+        const flipValue = $('#seam-flip').value;
+        if (flipValue !== 'true' && flipValue !== 'false') {
+          throw new Error('seam orientation (flip) must be chosen explicitly');
+        }
+        addSeam(app.model, {
+          id: $('#new-seam-id').value.trim() || `s${(app.model.seams ?? []).length}`,
+          a: $('#seam-a').value.trim(),
+          aEdge: Number($('#seam-a-slot').value),
+          b: $('#seam-b').value.trim(),
+          bEdge: Number($('#seam-b-slot').value),
+          flip: flipValue === 'true',
+        });
+        refresh();
+      } catch (err) {
+        alert(err.message);
+      }
     } else if (action === 'save') {
       saveLocal(app.model);
       flash('#save-status', 'Saved to browser storage.');
@@ -217,7 +373,12 @@ async function bindUI() {
       $('#import-file').click();
     } else if (action === 'reset-flat') {
       app.model.edges.forEach((_, i) => setAngle(app.model, i, 0));
+      captureTargetAngles();
       refresh();
+    } else if (action === 'unfold-flat') {
+      setUnfold(0);
+    } else if (action === 'refold') {
+      setUnfold(1);
     }
   });
 
@@ -245,10 +406,18 @@ async function bindUI() {
       else if (which === 'strip') loadExample(mixedSizeStrip);
       else if (which === 'mismatch') loadExample(mismatchedHinge);
       else if (which === 'cycle') loadExample(cyclicModel);
+      else if (which === 'closed-box') { app.mode = 'closed'; syncModeSelect(); loadExample(closedBoxFolded); }
+      else if (which === 'closed-lid') { app.mode = 'closed'; syncModeSelect(); loadExample(closedBoxColliding); }
+      else if (which === 'closed-insert') { app.mode = 'closed'; syncModeSelect(); loadExample(closedBoxInternalCollision); }
     });
   });
 
   window.addEventListener('resize', () => app.view3d.resize());
+}
+
+function syncModeSelect() {
+  const select = $('#mode-select');
+  if (select) select.value = app.mode;
 }
 
 function flash(sel, text) {
@@ -261,7 +430,12 @@ async function boot() {
   await bindUI();
   const saved = loadLocal();
   app.model = saved ?? deepClone(openBox());
+  captureTargetAngles();
   refresh();
 }
 
-boot();
+// The browser entry point starts automatically; importing this module in a
+// headless test (no document) only exposes the pure helpers and app state.
+if (typeof document !== 'undefined') boot();
+
+export { app, refresh, setUnfold, computeUnfold, captureTargetAngles };

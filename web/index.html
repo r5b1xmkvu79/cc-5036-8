@@ -12,8 +12,13 @@
     <p class="convention">
       Fold convention: <strong>0° = flat net</strong>, positive angle = valley (child toward +z),
       negative = mountain (child toward −z). Rotation axis points opposite the parent hinge
-      edge (right-hand rule). Tree connections only; cycles and mismatched hinge lengths are
-      rejected, never repaired by scaling.
+      edge (right-hand rule). Hinge tree plus optional packaging seams; mismatched hinge or
+      seam lengths are rejected, never repaired by scaling.
+    </p>
+    <p class="run-note">
+      Start the interface with <code>npm start</code> and open
+      <code>http://localhost:5173/</code>. Hinge angles, seams and packaging mode all drive
+      the same evaluated geometry shown in 2D and 3D.
     </p>
   </header>
 
@@ -24,12 +29,29 @@
         <canvas id="flat-canvas"></canvas>
       </div>
       <div class="view-card">
-        <h2>3D folded structure (drag to orbit · wheel to zoom · click to select)</h2>
+        <h2>3D folded structure — drag a teal fold handle to change its angle, drag elsewhere
+          to orbit, wheel to zoom, click to select</h2>
         <div id="view3d"></div>
       </div>
     </section>
 
     <section class="side">
+      <div class="panel-block">
+        <h3>Packaging assumption</h3>
+        <div class="form-grid one">
+          <select id="mode-select" aria-label="packaging mode">
+            <option value="tree">tree (hierarchical articulation)</option>
+            <option value="closed">closed-loop (seam constrained)</option>
+          </select>
+        </div>
+        <p class="muted small">
+          Tree measures seams only. Closed-loop solves hinge angles so every seam closes, and
+          reports the cost. A failed solve or any interference is shown in Diagnostics — never
+          replaced by a default pose.
+        </p>
+        <div id="packaging"></div>
+      </div>
+
       <div class="panel-block">
         <h3>Diagnostics</h3>
         <div id="diagnostics"></div>
@@ -44,13 +66,51 @@
           <button data-example="strip">Mixed sizes</button>
           <button data-example="mismatch">Bad: length mismatch</button>
           <button data-example="cycle">Bad: closed loop</button>
+          <button data-example="closed-box">Closed box (flat request)</button>
+          <button data-example="closed-lid">Closed box, lid 150° (collides)</button>
+          <button data-example="closed-insert">Closed box + flap (closes, collides)</button>
         </div>
+      </div>
+
+      <div class="panel-block">
+        <h3>Unfold / refold (same kernel)</h3>
+        <div class="unfold-row">
+          <input id="unfold-slider" type="range" min="0" max="1" step="0.01" value="1"
+            data-action="unfold" aria-label="unfold fraction">
+          <span id="unfold-value">100%</span>
+        </div>
+        <div class="btn-grid">
+          <button data-action="unfold-flat">Unfold to flat pattern</button>
+          <button data-action="refold">Refold to target</button>
+        </div>
+        <p class="muted small">
+          0% is the planar net, 100% the target pose. Seam gaps and interference are
+          recomputed at every fraction, so unfolding the pattern shows where the closure breaks.
+        </p>
       </div>
 
       <div class="panel-block">
         <h3>Fold angles (live parameters)</h3>
         <div id="edge-list"></div>
         <button data-action="reset-flat" class="full">Reset all angles to 0°</button>
+      </div>
+
+      <div class="panel-block">
+        <h3>Packaging seams</h3>
+        <div id="seam-list"></div>
+        <div class="form-grid">
+          <input id="new-seam-id" placeholder="seam id">
+          <input id="seam-a" placeholder="panel A id">
+          <input id="seam-a-slot" type="number" placeholder="A edge idx" min="0" value="0">
+          <input id="seam-b" placeholder="panel B id">
+          <input id="seam-b-slot" type="number" placeholder="B edge idx" min="0" value="0">
+          <select id="seam-flip" aria-label="seam orientation">
+            <option value="">orientation (required)</option>
+            <option value="true">flip: a[0]↔b[1]</option>
+            <option value="false">straight: a[0]↔b[0]</option>
+          </select>
+          <button data-action="add-seam">Add seam</button>
+        </div>
       </div>
 
       <div class="panel-block">
@@ -101,7 +161,9 @@
           This tool evaluates exact rigid-fold geometry from your parameters. A visually closed
           shape does <strong>not</strong> imply manufacturability, sealability, or structural
           strength — material thickness, crease tolerances, collision and load behavior are not
-          modeled.
+          modeled. Interference shown here is strict triangle-level panel crossing; it is not a
+          clearance or thickness simulation. See <code>deliverables/packaging-solve.md</code>
+          for the assumption list that still needs physical validation.
         </p>
       </div>
     </section>

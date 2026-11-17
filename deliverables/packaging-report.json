@@ -1,0 +1,790 @@
+{
+  "generatedBy": "experiments/packaging-solve.js",
+  "node": "v22.23.4",
+  "cases": [
+    {
+      "name": "closed-box-flat-request",
+      "mode": "tree",
+      "ok": true,
+      "validPose": true,
+      "elapsedMs": 1.2855828972533345,
+      "seam": {
+        "seamCount": 7,
+        "maxGap": 10,
+        "totalGap": 26.73149262547389,
+        "closed": false,
+        "seams": [
+          {
+            "id": "front-lid",
+            "gap": 10,
+            "endpointGaps": [
+              10,
+              10
+            ],
+            "midpointGap": 10
+          },
+          {
+            "id": "front-right",
+            "gap": 1.4142135623730951,
+            "endpointGaps": [
+              2.8284271247461903,
+              0
+            ],
+            "midpointGap": 1.4142135623730951
+          },
+          {
+            "id": "front-left",
+            "gap": 1.4142135623730951,
+            "endpointGaps": [
+              0,
+              2.8284271247461903
+            ],
+            "midpointGap": 1.4142135623730951
+          },
+          {
+            "id": "back-right",
+            "gap": 1.4142135623730951,
+            "endpointGaps": [
+              0,
+              2.8284271247461903
+            ],
+            "midpointGap": 1.4142135623730951
+          },
+          {
+            "id": "back-left",
+            "gap": 1.414213562373095,
+            "endpointGaps": [
+              2.82842712474619,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 1.414213562373095
+          },
+          {
+            "id": "left-lid",
+            "gap": 5.5373191879907555,
+            "endpointGaps": [
+              2.82842712474619,
+              8.246211251235321
+            ],
+            "midpointGap": 5.385164807134504
+          },
+          {
+            "id": "right-lid",
+            "gap": 5.5373191879907555,
+            "endpointGaps": [
+              8.246211251235321,
+              2.8284271247461903
+            ],
+            "midpointGap": 5.385164807134504
+          }
+        ]
+      },
+      "comparison": null,
+      "work": {
+        "foldBuilds": 1,
+        "iterations": 0,
+        "residualEvaluations": 0,
+        "jacobianRows": 0
+      },
+      "collisions": [],
+      "collisionStats": {
+        "panelPairs": 15,
+        "aabbPairs": 9,
+        "trianglePairs": 36,
+        "collidingPairs": 0
+      },
+      "diagnostics": [
+        {
+          "level": "warn",
+          "code": "SEAM_OPEN_TREE",
+          "message": "hierarchical articulation leaves seams open: max gap 10.000000 (no closure constraint applied)"
+        }
+      ]
+    },
+    {
+      "name": "closed-box-flat-request",
+      "mode": "closed",
+      "ok": true,
+      "validPose": true,
+      "elapsedMs": 7.9651669366285205,
+      "seam": {
+        "seamCount": 7,
+        "maxGap": 4.606656315939702e-16,
+        "totalGap": 1.556469458663156e-15,
+        "closed": true,
+        "seams": [
+          {
+            "id": "front-lid",
+            "gap": 4.606656315939702e-16,
+            "endpointGaps": [
+              4.606656315939702e-16,
+              4.606656315939702e-16
+            ],
+            "midpointGap": 4.606656315939702e-16
+          },
+          {
+            "id": "front-right",
+            "gap": 1.5308084989341913e-16,
+            "endpointGaps": [
+              1.2246467991473532e-16,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 6.123233995736766e-17
+          },
+          {
+            "id": "front-left",
+            "gap": 1.3691967456605067e-16,
+            "endpointGaps": [
+              0,
+              2.7383934913210134e-16
+            ],
+            "midpointGap": 1.3691967456605067e-16
+          },
+          {
+            "id": "back-right",
+            "gap": 0,
+            "endpointGaps": [
+              0,
+              0
+            ],
+            "midpointGap": 0
+          },
+          {
+            "id": "back-left",
+            "gap": 2.186371178656796e-16,
+            "endpointGaps": [
+              2.535772158592562e-16,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 2.303328157969851e-16
+          },
+          {
+            "id": "left-lid",
+            "gap": 3.6512157981900505e-16,
+            "endpointGaps": [
+              2.535772158592562e-16,
+              4.766659437787538e-16
+            ],
+            "midpointGap": 1.2246467991473532e-16
+          },
+          {
+            "id": "right-lid",
+            "gap": 2.220446049250313e-16,
+            "endpointGaps": [
+              4.440892098500626e-16,
+              0
+            ],
+            "midpointGap": 0
+          }
+        ]
+      },
+      "comparison": {
+        "treeMaxGap": 10,
+        "solvedMaxGap": 4.606656315939702e-16,
+        "maxAngleChange": 90,
+        "requestedAngles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "solvedAngles": [
+          90,
+          90,
+          90,
+          90,
+          90
+        ],
+        "treeWork": {
+          "foldBuilds": 1,
+          "iterations": 0,
+          "residualEvaluations": 0,
+          "jacobianRows": 0
+        },
+        "closedWork": {
+          "foldBuilds": 20,
+          "residualEvaluations": 20,
+          "jacobianRows": 10,
+          "iterations": 1,
+          "rejectedSteps": 8,
+          "restarts": 1,
+          "seedsTried": 2,
+          "variables": 5,
+          "seamConstraints": 7,
+          "residualCount": 47
+        }
+      },
+      "work": {
+        "foldBuilds": 20,
+        "residualEvaluations": 20,
+        "jacobianRows": 10,
+        "iterations": 1,
+        "rejectedSteps": 8,
+        "restarts": 1,
+        "seedsTried": 2,
+        "variables": 5,
+        "seamConstraints": 7,
+        "residualCount": 47
+      },
+      "collisions": [],
+      "collisionStats": {
+        "panelPairs": 15,
+        "aabbPairs": 12,
+        "trianglePairs": 48,
+        "collidingPairs": 0
+      },
+      "diagnostics": [
+        {
+          "level": "info",
+          "code": "TREE_SEAM_GAP",
+          "message": "tree pose seam gap 10.000000 was reduced to 0.000000 by the closed-loop solve"
+        }
+      ]
+    },
+    {
+      "name": "closed-box-lid-150",
+      "mode": "tree",
+      "ok": false,
+      "validPose": true,
+      "elapsedMs": 0.7584580453112721,
+      "seam": {
+        "seamCount": 7,
+        "maxGap": 3,
+        "totalGap": 6,
+        "closed": false,
+        "seams": [
+          {
+            "id": "front-lid",
+            "gap": 3,
+            "endpointGaps": [
+              3,
+              3
+            ],
+            "midpointGap": 3
+          },
+          {
+            "id": "front-right",
+            "gap": 1.5308084989341913e-16,
+            "endpointGaps": [
+              1.2246467991473532e-16,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 6.123233995736766e-17
+          },
+          {
+            "id": "front-left",
+            "gap": 1.3691967456605067e-16,
+            "endpointGaps": [
+              0,
+              2.7383934913210134e-16
+            ],
+            "midpointGap": 1.3691967456605067e-16
+          },
+          {
+            "id": "back-right",
+            "gap": 0,
+            "endpointGaps": [
+              0,
+              0
+            ],
+            "midpointGap": 0
+          },
+          {
+            "id": "back-left",
+            "gap": 2.186371178656796e-16,
+            "endpointGaps": [
+              2.535772158592562e-16,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 2.303328157969851e-16
+          },
+          {
+            "id": "left-lid",
+            "gap": 1.5000000000000002,
+            "endpointGaps": [
+              2.535772158592562e-16,
+              3
+            ],
+            "midpointGap": 1.5
+          },
+          {
+            "id": "right-lid",
+            "gap": 1.5,
+            "endpointGaps": [
+              3,
+              0
+            ],
+            "midpointGap": 1.5
+          }
+        ]
+      },
+      "comparison": null,
+      "work": {
+        "foldBuilds": 1,
+        "iterations": 0,
+        "residualEvaluations": 0,
+        "jacobianRows": 0
+      },
+      "collisions": [
+        {
+          "a": "base",
+          "b": "lid",
+          "type": "cross",
+          "point": [
+            0.9207985643219962,
+            1.8452994616207485,
+            2.220446049250313e-16
+          ]
+        }
+      ],
+      "collisionStats": {
+        "panelPairs": 15,
+        "aabbPairs": 12,
+        "trianglePairs": 45,
+        "collidingPairs": 1
+      },
+      "diagnostics": [
+        {
+          "level": "error",
+          "code": "PANEL_COLLISION",
+          "message": "panels \"base\" and \"lid\" interfere (cross); folded pose is not physically valid"
+        },
+        {
+          "level": "warn",
+          "code": "SEAM_OPEN_TREE",
+          "message": "hierarchical articulation leaves seams open: max gap 3.000000 (no closure constraint applied)"
+        }
+      ]
+    },
+    {
+      "name": "closed-box-lid-150",
+      "mode": "closed",
+      "ok": true,
+      "validPose": true,
+      "elapsedMs": 8.591542020440102,
+      "seam": {
+        "seamCount": 7,
+        "maxGap": 1.080585036065678e-7,
+        "totalGap": 4.2219075902998835e-7,
+        "closed": true,
+        "seams": [
+          {
+            "id": "front-lid",
+            "gap": 1.080585036065678e-7,
+            "endpointGaps": [
+              1.080585036065678e-7,
+              1.080585036065678e-7
+            ],
+            "midpointGap": 1.080585036065678e-7
+          },
+          {
+            "id": "front-right",
+            "gap": 1.86374909145488e-8,
+            "endpointGaps": [
+              3.727498164540058e-8,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 1.863749082270029e-8
+          },
+          {
+            "id": "front-left",
+            "gap": 1.8637490761469412e-8,
+            "endpointGaps": [
+              0,
+              3.7274981522938824e-8
+            ],
+            "midpointGap": 1.8637490761469412e-8
+          },
+          {
+            "id": "back-right",
+            "gap": 3.768458523012442e-8,
+            "endpointGaps": [
+              0,
+              7.536917046024884e-8
+            ],
+            "midpointGap": 3.768458523012442e-8
+          },
+          {
+            "id": "back-left",
+            "gap": 3.768458532197365e-8,
+            "endpointGaps": [
+              7.536917046025028e-8,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 3.768458523012514e-8
+          },
+          {
+            "id": "left-lid",
+            "gap": 1.0074405157935637e-7,
+            "endpointGaps": [
+              7.536917090433949e-8,
+              1.2611893225437324e-7
+            ],
+            "midpointGap": 9.075726058706224e-8
+          },
+          {
+            "id": "right-lid",
+            "gap": 1.007440516159479e-7,
+            "endpointGaps": [
+              1.2611893232755776e-7,
+              7.536917090433805e-8
+            ],
+            "midpointGap": 9.075726058706103e-8
+          }
+        ]
+      },
+      "comparison": {
+        "treeMaxGap": 3,
+        "solvedMaxGap": 1.080585036065678e-7,
+        "maxAngleChange": 59.99999590956195,
+        "requestedAngles": [
+          90,
+          90,
+          90,
+          90,
+          150
+        ],
+        "solvedAngles": [
+          90.00000106784957,
+          90,
+          89.99999784083232,
+          89.99999999999959,
+          90.00000409043805
+        ],
+        "treeWork": {
+          "foldBuilds": 1,
+          "iterations": 0,
+          "residualEvaluations": 0,
+          "jacobianRows": 0
+        },
+        "closedWork": {
+          "foldBuilds": 45,
+          "residualEvaluations": 45,
+          "jacobianRows": 40,
+          "iterations": 4,
+          "rejectedSteps": 0,
+          "restarts": 0,
+          "seedsTried": 1,
+          "variables": 5,
+          "seamConstraints": 7,
+          "residualCount": 47
+        }
+      },
+      "work": {
+        "foldBuilds": 45,
+        "residualEvaluations": 45,
+        "jacobianRows": 40,
+        "iterations": 4,
+        "rejectedSteps": 0,
+        "restarts": 0,
+        "seedsTried": 1,
+        "variables": 5,
+        "seamConstraints": 7,
+        "residualCount": 47
+      },
+      "collisions": [],
+      "collisionStats": {
+        "panelPairs": 15,
+        "aabbPairs": 11,
+        "trianglePairs": 44,
+        "collidingPairs": 0
+      },
+      "diagnostics": [
+        {
+          "level": "info",
+          "code": "TREE_SEAM_GAP",
+          "message": "tree pose seam gap 3.000000 was reduced to 0.000000 by the closed-loop solve"
+        }
+      ]
+    },
+    {
+      "name": "closed-box-internal-flap",
+      "mode": "tree",
+      "ok": false,
+      "validPose": true,
+      "elapsedMs": 1.1389160063117743,
+      "seam": {
+        "seamCount": 6,
+        "maxGap": 3.6512157981900505e-16,
+        "totalGap": 1.0958038270691858e-15,
+        "closed": true,
+        "seams": [
+          {
+            "id": "front-right",
+            "gap": 1.5308084989341913e-16,
+            "endpointGaps": [
+              1.2246467991473532e-16,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 6.123233995736766e-17
+          },
+          {
+            "id": "front-left",
+            "gap": 1.3691967456605067e-16,
+            "endpointGaps": [
+              0,
+              2.7383934913210134e-16
+            ],
+            "midpointGap": 1.3691967456605067e-16
+          },
+          {
+            "id": "back-right",
+            "gap": 0,
+            "endpointGaps": [
+              0,
+              0
+            ],
+            "midpointGap": 0
+          },
+          {
+            "id": "back-left",
+            "gap": 2.186371178656796e-16,
+            "endpointGaps": [
+              2.535772158592562e-16,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 2.303328157969851e-16
+          },
+          {
+            "id": "left-lid",
+            "gap": 3.6512157981900505e-16,
+            "endpointGaps": [
+              2.535772158592562e-16,
+              4.766659437787538e-16
+            ],
+            "midpointGap": 1.2246467991473532e-16
+          },
+          {
+            "id": "right-lid",
+            "gap": 2.220446049250313e-16,
+            "endpointGaps": [
+              4.440892098500626e-16,
+              0
+            ],
+            "midpointGap": 0
+          }
+        ]
+      },
+      "comparison": null,
+      "work": {
+        "foldBuilds": 1,
+        "iterations": 0,
+        "residualEvaluations": 0,
+        "jacobianRows": 0
+      },
+      "collisions": [
+        {
+          "a": "front",
+          "b": "insert",
+          "type": "coplanar",
+          "point": [
+            1.9999999999999991,
+            0,
+            1.4999999999999998
+          ]
+        }
+      ],
+      "collisionStats": {
+        "panelPairs": 21,
+        "aabbPairs": 17,
+        "trianglePairs": 65,
+        "collidingPairs": 1
+      },
+      "diagnostics": [
+        {
+          "level": "error",
+          "code": "PANEL_COLLISION",
+          "message": "panels \"front\" and \"insert\" interfere (coplanar); folded pose is not physically valid"
+        }
+      ]
+    },
+    {
+      "name": "closed-box-internal-flap",
+      "mode": "closed",
+      "ok": false,
+      "validPose": true,
+      "elapsedMs": 1.2229159474372864,
+      "seam": {
+        "seamCount": 6,
+        "maxGap": 3.6512157981900505e-16,
+        "totalGap": 1.0958038270691858e-15,
+        "closed": true,
+        "seams": [
+          {
+            "id": "front-right",
+            "gap": 1.5308084989341913e-16,
+            "endpointGaps": [
+              1.2246467991473532e-16,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 6.123233995736766e-17
+          },
+          {
+            "id": "front-left",
+            "gap": 1.3691967456605067e-16,
+            "endpointGaps": [
+              0,
+              2.7383934913210134e-16
+            ],
+            "midpointGap": 1.3691967456605067e-16
+          },
+          {
+            "id": "back-right",
+            "gap": 0,
+            "endpointGaps": [
+              0,
+              0
+            ],
+            "midpointGap": 0
+          },
+          {
+            "id": "back-left",
+            "gap": 2.186371178656796e-16,
+            "endpointGaps": [
+              2.535772158592562e-16,
+              1.8369701987210297e-16
+            ],
+            "midpointGap": 2.303328157969851e-16
+          },
+          {
+            "id": "left-lid",
+            "gap": 3.6512157981900505e-16,
+            "endpointGaps": [
+              2.535772158592562e-16,
+              4.766659437787538e-16
+            ],
+            "midpointGap": 1.2246467991473532e-16
+          },
+          {
+            "id": "right-lid",
+            "gap": 2.220446049250313e-16,
+            "endpointGaps": [
+              4.440892098500626e-16,
+              0
+            ],
+            "midpointGap": 0
+          }
+        ]
+      },
+      "comparison": {
+        "treeMaxGap": 3.6512157981900505e-16,
+        "solvedMaxGap": 3.6512157981900505e-16,
+        "maxAngleChange": 0,
+        "requestedAngles": [
+          90,
+          90,
+          90,
+          90,
+          90,
+          90
+        ],
+        "solvedAngles": [
+          90,
+          90,
+          90,
+          90,
+          90,
+          90
+        ],
+        "treeWork": {
+          "foldBuilds": 1,
+          "iterations": 0,
+          "residualEvaluations": 0,
+          "jacobianRows": 0
+        },
+        "closedWork": {
+          "foldBuilds": 1,
+          "residualEvaluations": 1,
+          "jacobianRows": 0,
+          "iterations": 0,
+          "rejectedSteps": 0,
+          "restarts": 0,
+          "seedsTried": 1,
+          "variables": 6,
+          "seamConstraints": 6,
+          "residualCount": 42
+        }
+      },
+      "work": {
+        "foldBuilds": 1,
+        "residualEvaluations": 1,
+        "jacobianRows": 0,
+        "iterations": 0,
+        "rejectedSteps": 0,
+        "restarts": 0,
+        "seedsTried": 1,
+        "variables": 6,
+        "seamConstraints": 6,
+        "residualCount": 42
+      },
+      "collisions": [
+        {
+          "a": "front",
+          "b": "insert",
+          "type": "coplanar",
+          "point": [
+            1.9999999999999991,
+            0,
+            1.4999999999999998
+          ]
+        }
+      ],
+      "collisionStats": {
+        "panelPairs": 21,
+        "aabbPairs": 17,
+        "trianglePairs": 65,
+        "collidingPairs": 1
+      },
+      "diagnostics": [
+        {
+          "level": "error",
+          "code": "PANEL_COLLISION",
+          "message": "panels \"front\" and \"insert\" interfere (coplanar); folded pose is not physically valid"
+        }
+      ]
+    }
+  ],
+  "legacy": [
+    {
+      "name": "open box 4x3x2",
+      "legacyName": true,
+      "ok": true,
+      "seamCount": 0,
+      "collisionCount": 0,
+      "diagnostics": []
+    },
+    {
+      "name": "two-panel diagonal hinge",
+      "legacyName": true,
+      "ok": true,
+      "seamCount": 0,
+      "collisionCount": 0,
+      "diagnostics": []
+    },
+    {
+      "name": "mixed-size strip",
+      "legacyName": true,
+      "ok": true,
+      "seamCount": 0,
+      "collisionCount": 0,
+      "diagnostics": []
+    }
+  ],
+  "assumptions": [
+    "Rigid, zero-thickness panels: no material thickness, crease radius or ply build-up.",
+    "Seams join free panel edges of exactly equal length; unequal lengths are rejected, never rescaled.",
+    "Every seam declares flip (endpoint pairing) explicitly; orientation is never inferred.",
+    "Hinges must form a single tree (legacy validation); seams add closure, not extra kinematic loops.",
+    "Seed sequence is deterministic (requested, then 90/-90/45/-45/135/-135 degrees); solve is local and may fail.",
+    "A flat net is an exact seam-residual stationary point, so 0-degree requests require a restart.",
+    "Closure is geometric only: it is not a sealability, stiffness or manufacturability claim.",
+    "Collisions are strict-interior triangle tests; shared hinge/seam boundaries do not count.",
+    "Timing is wall-clock on this machine; fold-build and residual counters are the portable cost evidence."
+  ],
+  "notes": [
+    "tree = hierarchical articulation with seams only measured.",
+    "closed = same hinge tree plus seam equality constraints solved by LM multi-start.",
+    "A closed case with collisions is still reported as ok:false; closure never hides interference."
+  ]
+}

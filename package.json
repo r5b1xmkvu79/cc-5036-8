@@ -6,7 +6,8 @@
   "description": "Interactive packaging net folding preview tool",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "experiment": "node experiments/packaging-solve.js"
   },
   "dependencies": {
     "three": "^0.169.0"

@@ -4,6 +4,7 @@
 
 import { buildFold } from '../src/engine.js';
 import { validateModel } from '../src/validation.js';
+import { evaluatePackaging } from '../src/packaging.js';
 
 const STORAGE_KEY = 'fold-preview-model-v1';
 
@@ -15,7 +16,26 @@ export function deepClone(model) {
   return JSON.parse(JSON.stringify(model));
 }
 
-export function evaluate(model, rootId) {
+// Packaging-aware evaluation. `mode` is 'tree' (legacy articulation, seams
+// measured) or 'closed' (seam-constrained solve). Tree is the default so old
+// hinge-only models keep their exact previous behaviour; closed mode is opt-in
+// and refuses models without seams instead of silently falling back.
+export function evaluate(model, options = {}) {
+  const mode = options.mode === 'closed' ? 'closed' : 'tree';
+  const validation = validateModel(model);
+  if (!validation.ok) {
+    return { ok: false, diagnostics: validation.diagnostics, result: null, mode };
+  }
+  const packaged = evaluatePackaging(model, {
+    mode,
+    rootId: options.rootId,
+    tolerance: options.tolerance,
+  });
+  return packaged;
+}
+
+// Legacy tree-only evaluation retained for callers that only know hinges.
+export function evaluateTree(model, rootId) {
   const validation = validateModel(model);
   if (!validation.ok) {
     return { ok: false, diagnostics: validation.diagnostics, result: null };
@@ -70,7 +90,25 @@ export function parseJSONFile(text) {
     }
     if (!Number.isFinite(edge.angle)) edge.angle = 0;
   }
-  return { name: parsed.name ?? 'imported net', panels: parsed.panels, edges: parsed.edges };
+  const seams = parsed.seams ?? [];
+  if (!Array.isArray(seams)) throw new Error('seams must be an array when present');
+  for (const seam of seams) {
+    if (typeof seam.id !== 'string' || typeof seam.a !== 'string' || typeof seam.b !== 'string') {
+      throw new Error('each seam needs a string id and a/b panel ids');
+    }
+    if (!Number.isInteger(seam.aEdge) || !Number.isInteger(seam.bEdge)) {
+      throw new Error('each seam needs integer aEdge/bEdge slots');
+    }
+    if (typeof seam.flip !== 'boolean') {
+      throw new Error(`seam "${seam.id}" must declare flip (true/false)`);
+    }
+  }
+  return {
+    name: parsed.name ?? 'imported net',
+    panels: parsed.panels,
+    edges: parsed.edges,
+    ...(seams.length ? { seams } : {}),
+  };
 }
 
 // ---- model editing helpers (structural edits, not visual shortcuts) ------
@@ -84,10 +122,23 @@ export function addPanel(model, panel) {
 export function removePanel(model, panelId) {
   model.panels = model.panels.filter((p) => p.id !== panelId);
   model.edges = model.edges.filter((e) => e.a !== panelId && e.b !== panelId);
+  if (model.seams) {
+    model.seams = model.seams.filter((s) => s.a !== panelId && s.b !== panelId);
+  }
 }
 
 export function addEdge(model, edge) {
   model.edges.push({ ...edge, angle: edge.angle ?? 0 });
+}
+
+export function addSeam(model, seam) {
+  if (!model.seams) model.seams = [];
+  model.seams.push({ ...seam, flip: seam.flip ?? true });
+}
+
+export function removeSeam(model, seamId) {
+  if (!model.seams) return;
+  model.seams = model.seams.filter((s) => s.id !== seamId);
 }
 
 export function removeEdge(model, edgeIndex) {

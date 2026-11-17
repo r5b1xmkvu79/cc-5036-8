@@ -5,6 +5,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluate, parseJSONFile, setAngle, toJSONFile } from '../web/state.js';
 import {
+  closedBox,
+  closedBoxColliding,
+  closedBoxInternalCollision,
   cyclicModel,
   mismatchedHinge,
   mixedSizeStrip,
@@ -108,4 +111,59 @@ test('workflow: valley (+) and mountain (-) on identical panels are z-mirrors', 
     assert.ok(Math.abs(b[i][1] - v[1]) < 1e-9);
     assert.ok(Math.abs(b[i][2] + v[2]) < 1e-9);
   });
+});
+
+test('workflow: the UI evaluation path uses the packaging kernel for closed mode', () => {
+  const tree = evaluate(closedBox());
+  assert.equal(tree.mode, 'tree');
+  assert.ok(tree.tree.seamReport.maxGap > 1);
+
+  const closed = evaluate(closedBox(), { mode: 'closed' });
+  assert.equal(closed.mode, 'closed');
+  assert.equal(closed.closed.converged, true);
+  assert.ok(closed.comparison.closedWork.foldBuilds >= 1);
+  assert.ok(closed.closed.seamReport.maxGap < 1e-6);
+});
+
+test('workflow: drag-to-angle edits feed the same solver and keep failures visible', () => {
+  const model = closedBoxInternalCollision();
+  // Simulate the 3D handle drag callback: setAngle -> evaluate -> view update.
+  const lidIdx = model.edges.findIndex((e) => e.id === 'insert-hinge');
+  setAngle(model, lidIdx, -90); // flap folds up instead of into the wall
+  const fixed = evaluate(model, { mode: 'closed' });
+  assert.equal(fixed.closed.converged, true);
+  assert.equal(fixed.collisions.length, 0);
+  assert.equal(fixed.ok, true);
+
+  setAngle(model, lidIdx, 90); // back into the wall
+  const broken = evaluate(model, { mode: 'closed' });
+  assert.equal(broken.closed.converged, true, 'seams still close');
+  assert.ok(broken.collisions.length >= 1, 'interference is still reported');
+  assert.equal(broken.ok, false);
+  assert.ok(broken.diagnostics.some((d) => d.code === 'PANEL_COLLISION'));
+});
+
+test('workflow: a closed-mode failure produces no fabricated pose', () => {
+  const model = closedBox();
+  // Max iterations 1 is not enough to leave the flat stationary point from 0
+  // when only the requested start is allowed; the result must stay honest.
+  const evaluated = evaluate(model, { mode: 'closed', tolerance: 1e-9 });
+  // The real multi-start does converge; verify the failure path separately by
+  // evaluating a model whose seam slot set is invalid.
+  const invalid = { ...closedBox() };
+  invalid.seams = invalid.seams.map((s, i) => (i === 0 ? { ...s, bEdge: 0 } : s));
+  const failed = evaluate(invalid, { mode: 'closed' });
+  assert.equal(failed.ok, false);
+  assert.equal(failed.result, null);
+  assert.ok(failed.diagnostics.length > 0);
+  // Sanity: the untouched model did converge, so the failure above is real.
+  assert.equal(evaluated.closed.converged, true);
+});
+
+test('workflow: legacy tree examples run to completion alongside packaging', () => {
+  for (const model of [openBox(), twoPanelDiagonal(), mixedSizeStrip(), closedBoxColliding()]) {
+    const r = evaluate(model);
+    assert.ok(r.result, `${model.name} should produce a pose in tree mode`);
+    assert.ok(r.result.ok, `${model.name} pose must be rigid`);
+  }
 });

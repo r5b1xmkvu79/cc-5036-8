@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { FoldView3D } from '../web/view3d.js';
 import { evaluate } from '../web/state.js';
-import { withBoxFolded, openBox } from '../src/examples.js';
+import { closedBoxColliding, withBoxFolded, openBox } from '../src/examples.js';
 import { THREE_STUB, makeContainer } from './helpers/three-stub.js';
 
 function createView(handlers = { onSelect() {} }) {
@@ -90,4 +90,38 @@ test('FoldView3D repeated updates dispose old geometry and stay consistent', () 
   view.update(model, evaluate(model).result, null);
   assert.equal(oldMesh.geometry.disposed, true);
   assert.equal(view.panelMeshes.size, 5);
+});
+
+test('FoldView3D drags a fold handle and reports the new hinge angle', () => {
+  const changes = [];
+  const { view, canvas } = createView({
+    onSelect() {},
+    onAngleChange: (i, deg) => changes.push([i, deg]),
+  });
+  const model = withBoxFolded();
+  view.update(model, evaluate(model).result, null);
+  // The stub raycaster always hits the first handle: edge index 0.
+  canvas.dispatch('pointerdown', { clientX: 10, clientY: 10, pointerId: 1 });
+  canvas.dispatch('pointermove', { clientX: 10, clientY: 60, movementX: 0, movementY: 50 });
+  canvas.dispatch('pointerup', { clientX: 10, clientY: 60 });
+  assert.equal(changes.length, 1);
+  assert.equal(changes[0][0], 0);
+  // dragging down decreases the requested angle by 0.5 deg per pixel
+  assert.ok(changes[0][1] < model.edges[0].angle);
+  assert.ok(changes[0][1] >= -180);
+});
+
+test('FoldView3D surfaces seams and collision markers, never hides them', () => {
+  const { view } = createView();
+  const model = closedBoxColliding();
+  const evaluation = evaluate(model, { mode: 'tree' });
+  assert.ok(evaluation.collisions.length >= 1);
+  view.update(model, evaluation.result, null, evaluation);
+  assert.equal(view.seamLines.children.length, model.seams.length);
+  assert.equal(view.collisionMarks.children.length, evaluation.collisions.length);
+  // interfering panels are marked in the material, not silently drawn normally
+  const colliding = new Set(evaluation.collisions.flatMap((c) => [c.a, c.b]));
+  for (const id of colliding) {
+    assert.ok(view.panelMeshes.get(id).material.emissiveIntensity > 0);
+  }
 });
