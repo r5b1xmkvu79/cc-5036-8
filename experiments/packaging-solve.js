@@ -41,6 +41,9 @@ function runCase(name, builder, mode) {
     mode,
     ok: evaluated.ok,
     validPose: Boolean(evaluated.result?.ok),
+    // Wall-clock is machine-dependent and therefore kept out of the canonical
+    // JSON. It is printed in the table; the reproducible cost evidence is the
+    // deterministic fold/residual/iteration counter block below.
     elapsedMs,
     seam: evaluated.closed?.seamReport ?? evaluated.tree?.seamReport ?? null,
     comparison: evaluated.comparison ?? null,
@@ -58,6 +61,11 @@ function runCase(name, builder, mode) {
       message: d.message,
     })),
   };
+}
+
+function canonical(record) {
+  const { elapsedMs, ...rest } = record;
+  return rest;
 }
 
 const cases = [
@@ -101,13 +109,14 @@ const assumptions = [
 const report = {
   generatedBy: 'experiments/packaging-solve.js',
   node: process.version,
-  cases: records,
+  cases: records.map(canonical),
   legacy,
   assumptions,
   notes: [
     'tree = hierarchical articulation with seams only measured.',
     'closed = same hinge tree plus seam equality constraints solved by LM multi-start.',
     'A closed case with collisions is still reported as ok:false; closure never hides interference.',
+    'elapsedMs is printed to stdout only; it is wall-clock and not part of the reproducible report.',
   ],
 };
 
@@ -120,7 +129,7 @@ if (process.argv.includes('--json')) {
   const pad = (s, n) => String(s).padEnd(n);
   const num = (v, digits = 6) => (v === null || v === undefined ? '—' : Number(v).toFixed(digits));
   console.log('Packaging closure experiment (same planar net)');
-  console.log('case'.padEnd(30), pad('mode', 8), pad('seam max gap', 14), pad('seams', 6), pad('closed', 7), pad('collisions', 11), 'fold builds');
+  console.log('case'.padEnd(30), pad('mode', 8), pad('seam max gap', 14), pad('seams', 6), pad('closed', 7), pad('collisions', 11), pad('fold builds', 12), 'elapsed ms');
   for (const r of records) {
     const gap = r.seam?.maxGap;
     console.log(
@@ -130,7 +139,8 @@ if (process.argv.includes('--json')) {
       pad(r.seam?.seamCount ?? '—', 6),
       pad(r.seam?.closed === null || r.seam?.closed === undefined ? '—' : String(r.seam.closed), 7),
       pad(r.collisions.length, 11),
-      r.work?.foldBuilds ?? '—',
+      pad(r.work?.foldBuilds ?? '—', 12),
+      r.elapsedMs.toFixed(2),
     );
   }
   console.log('\nLegacy examples still run:');

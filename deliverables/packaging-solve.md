@@ -12,6 +12,10 @@ npm run experiment   # 重新生成 deliverables/packaging-report.json
 npm test             # 含 experiment-report.test.js 的逐项复算
 ```
 
+规范 JSON 不含墙钟耗时（`elapsedMs` 只打印到终端），因为它依赖机器；可复算的
+成本证据是确定性的折叠构造、残差求值、迭代与起点计数。本报告连续两次生成字节
+一致。
+
 ## 1. 同一平面图上的两种假设
 
 两者使用完全相同的平面图（panel 顶点、铰链树）。差异只在求解假设：

@@ -96,6 +96,14 @@ test('the closed box with 150 degree lid is an actual tree-mode collision', () =
   assert.equal(evaluated.ok, false);
 });
 
+test('the canonical report excludes wall-clock timing so it can be recomputed', async () => {
+  const report = JSON.parse(await readFile(reportPath, 'utf8'));
+  for (const record of report.cases) {
+    assert.equal(record.elapsedMs, undefined,
+      'elapsedMs is machine-dependent; cost evidence must be the deterministic counters');
+  }
+});
+
 test('numbers cited in the conclusion match the generated report', async () => {
   const report = JSON.parse(await readFile(reportPath, 'utf8'));
   const doc = await readFile(

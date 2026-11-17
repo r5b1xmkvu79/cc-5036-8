@@ -7,7 +7,6 @@
       "mode": "tree",
       "ok": true,
       "validPose": true,
-      "elapsedMs": 1.2855828972533345,
       "seam": {
         "seamCount": 7,
         "maxGap": 10,
@@ -106,7 +105,6 @@
       "mode": "closed",
       "ok": true,
       "validPose": true,
-      "elapsedMs": 7.9651669366285205,
       "seam": {
         "seamCount": 7,
         "maxGap": 4.606656315939702e-16,
@@ -247,7 +245,6 @@
       "mode": "tree",
       "ok": false,
       "validPose": true,
-      "elapsedMs": 0.7584580453112721,
       "seam": {
         "seamCount": 7,
         "maxGap": 3,
@@ -362,7 +359,6 @@
       "mode": "closed",
       "ok": true,
       "validPose": true,
-      "elapsedMs": 8.591542020440102,
       "seam": {
         "seamCount": 7,
         "maxGap": 1.080585036065678e-7,
@@ -503,7 +499,6 @@
       "mode": "tree",
       "ok": false,
       "validPose": true,
-      "elapsedMs": 1.1389160063117743,
       "seam": {
         "seamCount": 6,
         "maxGap": 3.6512157981900505e-16,
@@ -604,7 +599,6 @@
       "mode": "closed",
       "ok": false,
       "validPose": true,
-      "elapsedMs": 1.2229159474372864,
       "seam": {
         "seamCount": 6,
         "maxGap": 3.6512157981900505e-16,
@@ -785,6 +779,7 @@
   "notes": [
     "tree = hierarchical articulation with seams only measured.",
     "closed = same hinge tree plus seam equality constraints solved by LM multi-start.",
-    "A closed case with collisions is still reported as ok:false; closure never hides interference."
+    "A closed case with collisions is still reported as ok:false; closure never hides interference.",
+    "elapsedMs is printed to stdout only; it is wall-clock and not part of the reproducible report."
   ]
 }
